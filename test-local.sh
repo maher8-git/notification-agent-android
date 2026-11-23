@@ -14,3 +14,5 @@ java -cp "$classes" notificationagent.PriorityEngineTest
 java -cp "$classes" notificationagent.IngestionBoundaryTest
 
 java -cp "$classes" notificationagent.SessionIntakeTest
+
+java -cp "$classes" notificationagent.DaypartFeedbackTest

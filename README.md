@@ -31,3 +31,5 @@ la plateforme, opt-in local pour la session et autorisation d'un canal précis
 sont distincts. La déconnexion efface l'apprentissage en RAM et demande une
 nouvelle autorisation locale. Ce module ne collecte pas les notifications
 Android et ne branche aucun service système à lui seul.
+
+`DaypartFeedback` teste des préférences par plage horaire sur des choix explicites et fictifs, en mémoire. Sans signaux suffisants, le score général est conservé. Le module n'est pas encore relié à Android.
