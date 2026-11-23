@@ -34,6 +34,7 @@ public final class SessionIntakeTest {
         x.disableThisSession();
         check(x.post("three", "org.example.test", "dispatch", ALLOWED)==null);
         timedFeedback();
+        summaryLifecycle();
         System.out.println(checks + " vérifications de consentement et canal réussies.");
     }
 
@@ -84,5 +85,48 @@ public final class SessionIntakeTest {
         check(x.enableThisSession());
         check(x.approveChannel(app, channel, DELIVERY));
         check(x.postAtLocalHour("after-disconnect", app, channel, ALLOWED, 19).reason == SessionIntake.Reason.GENERAL);
+    }
+
+    private static void summaryLifecycle() {
+        String app = "org.example.test", channel = "dispatch";
+        SessionIntake x = new SessionIntake();
+        check(x.lowPrioritySnapshot().isEmpty());
+        x.platformConnection(true);
+        check(x.enableThisSession());
+        check(x.approveChannel(app, channel, DELIVERY));
+        for (int i = 0; i < 3; i++) {
+            IngestionBoundary.Suggestion training = x.post("train-" + i, app, channel, ALLOWED);
+            check(x.feedback(training, PriorityEngine.Feedback.LESS_IMPORTANT));
+        }
+        check(x.postAtLocalHour("blocked", app, channel, OTP, 20) == null);
+        check(x.postAtLocalHour("blocked-channel", app, "other", ALLOWED, 20) == null);
+        check(x.postAtLocalHour("invalid-hour", app, channel, ALLOWED, -1).priority == PriorityEngine.Priority.LOW);
+        check(x.lowPrioritySnapshot().isEmpty());
+        check(x.postAtLocalHour("first", app, channel, ALLOWED, 20).priority == PriorityEngine.Priority.LOW);
+        check(x.postAtLocalHour("first", app, channel, ALLOWED, 21).priority == PriorityEngine.Priority.LOW);
+        x.postAtLocalHour("first", app, channel, ALLOWED, 8);
+        check(x.lowPrioritySnapshot().size() == 1);
+        LowPrioritySummary.Group group = x.lowPrioritySnapshot().get(0);
+        check(app.equals(group.application) && group.category == DELIVERY);
+        check(group.count == 1 && group.daypart == LowPrioritySummary.Daypart.EVENING);
+        check(x.postAtLocalHour("second", app, channel, ALLOWED, 23).priority == PriorityEngine.Priority.LOW);
+        check(x.lowPrioritySnapshot().get(0).count == 2);
+        x.disableThisSession();
+        check(x.lowPrioritySnapshot().isEmpty());
+        check(x.enableThisSession());
+        check(x.approveChannel(app, channel, DELIVERY));
+        check(x.postAtLocalHour("first", app, channel, ALLOWED, 20).priority == PriorityEngine.Priority.NORMAL);
+        check(x.lowPrioritySnapshot().isEmpty());
+        for (int i = 0; i < 3; i++) {
+            x.feedback(x.post("retrain-" + i, app, channel, ALLOWED),
+                    PriorityEngine.Feedback.LESS_IMPORTANT);
+        }
+        x.postAtLocalHour("again", app, channel, ALLOWED, 20);
+        check(x.lowPrioritySnapshot().get(0).count == 1);
+        x.platformConnection(false);
+        check(x.lowPrioritySnapshot().isEmpty());
+        x.platformConnection(true);
+        check(x.postAtLocalHour("after-disconnect", app, channel, ALLOWED, 20) == null);
+        check(x.lowPrioritySnapshot().isEmpty());
     }
 }

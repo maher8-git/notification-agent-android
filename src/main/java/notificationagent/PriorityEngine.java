@@ -25,6 +25,7 @@ public final class PriorityEngine {
     private static final class Pending {
         final String group;
         boolean labeled;
+        boolean summarized;
         Pending(String group) { this.group = group; }
     }
 
@@ -53,6 +54,13 @@ public final class PriorityEngine {
 
     synchronized Object pendingToken(String id) {
         return recent.get(id);
+    }
+
+    synchronized boolean markSummarizedCurrent(String id, Object token) {
+        Pending pending = recent.get(id);
+        if (pending == null || pending != token || pending.summarized) return false;
+        pending.summarized = true;
+        return true;
     }
 
     synchronized boolean labelCurrent(String id, Object token, Feedback feedback) {

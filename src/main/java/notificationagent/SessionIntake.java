@@ -9,6 +9,7 @@ public final class SessionIntake {
     private static final int MAX_PAIRS = 64;
     private final IngestionBoundary boundary = new IngestionBoundary();
     private final DaypartFeedback dayparts = new DaypartFeedback();
+    private final LowPrioritySummary lowPriority = new LowPrioritySummary();
     private final Map<Key, PriorityEngine.Category> approved = new HashMap<>();
     private boolean connected;
     private boolean localConsent;
@@ -69,6 +70,7 @@ public final class SessionIntake {
         approved.clear();
         boundary.setOptIn(false);
         dayparts.reset();
+        lowPriority.clear();
     }
 
     /** Only call from a positive, explicit in-app approval for a known safe test channel. */
@@ -96,7 +98,18 @@ public final class SessionIntake {
         IngestionBoundary.Suggestion base = post(opaqueId, app, channel, privacy);
         if (base == null) return null;
         PriorityEngine.Category category = approved.get(new Key(app, channel));
-        return new TimedSuggestion(base, app, category, localHour, dayparts.preference(app, category, localHour));
+        TimedSuggestion suggestion = new TimedSuggestion(
+                base, app, category, localHour, dayparts.preference(app, category, localHour));
+        if (suggestion.hour != -1 && suggestion.priority == PriorityEngine.Priority.LOW
+                && boundary.markSummarized(base)) {
+            lowPriority.recordApproved(app, category, suggestion.hour, privacy, suggestion.priority);
+        }
+        return suggestion;
+    }
+
+    /** Read-only aggregate as of now; callers should not cache it beyond this session. */
+    public synchronized java.util.List<LowPrioritySummary.Group> lowPrioritySnapshot() {
+        return lowPriority.snapshot();
     }
 
     /** Daypart learning happens only after the existing admission handle accepts the UI label. */

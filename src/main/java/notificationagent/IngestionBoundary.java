@@ -65,6 +65,11 @@ public final class IngestionBoundary {
                 : new Suggestion(priority, lifetime, opaque, engine.pendingToken(opaque));
     }
 
+    synchronized boolean markSummarized(Suggestion suggestion) {
+        return optedIn && suggestion != null && suggestion.lifetime == lifetime
+                && engine.markSummarizedCurrent(suggestion.id, suggestion.pending);
+    }
+
     /** Call only in response to an explicit click in the app's own UI. */
     public synchronized boolean label(Suggestion suggestion, PriorityEngine.Feedback choice) {
         return optedIn && suggestion != null && suggestion.lifetime == lifetime
