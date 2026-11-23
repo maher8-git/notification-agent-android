@@ -36,9 +36,23 @@ public final class HabitDemo {
         line(out, "20 h, après les retours", session.postAtLocalHour("bilan-soir", APP, CHANNEL, ALLOWED, 20));
         line(out, "14 h, sans retours", session.postAtLocalHour("bilan-jour", APP, CHANNEL, ALLOWED, 14));
         line(out, "Notification sensible", session.postAtLocalHour("sensible", APP, CHANNEL, OTP, 8));
+        session.postAtLocalHour("bilan-soir", APP, CHANNEL, ALLOWED, 21); // Same admitted event.
+        session.postAtLocalHour("deuxieme-soir", APP, CHANNEL, ALLOWED, 22);
+        summary(out, "Résumé du soir (dont un doublon ignoré)", session);
         session.disableThisSession();
         line(out, "Après révocation du consentement local", session.postAtLocalHour("apres", APP, CHANNEL, ALLOWED, 8));
+        summary(out, "Résumé après révocation", session);
         return out.toString();
+    }
+
+    private static void summary(StringBuilder out, String text, SessionIntake session) {
+        int count = 0;
+        for (LowPrioritySummary.Group group : session.lowPrioritySnapshot()) {
+            if (group.daypart == LowPrioritySummary.Daypart.EVENING) count += group.count;
+        }
+        out.append(text).append(" : ").append(count).append(" alerte");
+        if (count != 1) out.append('s');
+        out.append('\n');
     }
 
     private static void check(boolean ok) {

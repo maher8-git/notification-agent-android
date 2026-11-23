@@ -11,7 +11,9 @@ public final class HabitDemoTest {
             "20 h, après les retours : moins prioritaire (habitudes de cette tranche)",
             "14 h, sans retours : standard (règle générale)",
             "Notification sensible : ignorée",
-            "Après révocation du consentement local : ignorée"
+            "Résumé du soir (dont un doublon ignoré) : 2 alertes",
+            "Après révocation du consentement local : ignorée",
+            "Résumé après révocation : 0 alertes"
         };
         if (lines.length != expected.length) throw new AssertionError("unexpected number of demo lines");
         for (int i = 0; i < expected.length; i++) {
