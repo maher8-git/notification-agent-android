@@ -51,6 +51,14 @@ public final class PriorityEngine {
                 : score <= -3 ? Priority.LOW : Priority.NORMAL;
     }
 
+    synchronized Object pendingToken(String id) {
+        return recent.get(id);
+    }
+
+    synchronized boolean labelCurrent(String id, Object token, Feedback feedback) {
+        return token != null && recent.get(id) == token && label(id, feedback);
+    }
+
     /** Explicit in-app feedback only. Never infer engagement from open/clear events. */
     public synchronized boolean label(String id, Feedback feedback) {
         Pending pending = recent.get(id);

@@ -33,3 +33,5 @@ nouvelle autorisation locale. Ce module ne collecte pas les notifications
 Android et ne branche aucun service système à lui seul.
 
 `DaypartFeedback` teste des préférences par plage horaire sur des choix explicites et fictifs, en mémoire. Sans signaux suffisants, le score général est conservé. Le module n'est pas encore relié à Android.
+
+Le parcours de session synthétique distingue la priorité générale de la préférence apprise pour cette plage horaire. Une suggestion retirée ou purgée ne redevient pas valide au retour du même identifiant.

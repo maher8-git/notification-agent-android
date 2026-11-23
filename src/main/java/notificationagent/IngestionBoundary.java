@@ -19,11 +19,13 @@ public final class IngestionBoundary {
         public final PriorityEngine.Priority priority;
         private final Object lifetime;
         private final String id;
+        private final Object pending;
 
-        private Suggestion(PriorityEngine.Priority priority, Object lifetime, String id) {
+        private Suggestion(PriorityEngine.Priority priority, Object lifetime, String id, Object pending) {
             this.priority = priority;
             this.lifetime = lifetime;
             this.id = id;
+            this.pending = pending;
         }
     }
 
@@ -60,12 +62,12 @@ public final class IngestionBoundary {
                 scoped.getBytes(java.nio.charset.StandardCharsets.UTF_8)).toString();
         PriorityEngine.Priority priority = engine.suggest(opaque, app, category, privacy);
         return priority == PriorityEngine.Priority.EXCLUDED ? null
-                : new Suggestion(priority, lifetime, opaque);
+                : new Suggestion(priority, lifetime, opaque, engine.pendingToken(opaque));
     }
 
     /** Call only in response to an explicit click in the app's own UI. */
     public synchronized boolean label(Suggestion suggestion, PriorityEngine.Feedback choice) {
         return optedIn && suggestion != null && suggestion.lifetime == lifetime
-                && engine.label(suggestion.id, choice);
+                && engine.labelCurrent(suggestion.id, suggestion.pending, choice);
     }
 }
