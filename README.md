@@ -31,3 +31,11 @@ la plateforme, opt-in local pour la session et autorisation d'un canal précis
 sont distincts. La déconnexion efface l'apprentissage en RAM et demande une
 nouvelle autorisation locale. Ce module ne collecte pas les notifications
 Android et ne branche aucun service système à lui seul.
+
+### Parcours Android expérimental (non compilé ici)
+
+Le squelette comporte maintenant un essai facultatif en deux étapes, accès
+Android puis consentement de la session locale. Il ne reconnaît que sa propre
+notification fictive déclenchée manuellement, sans lire le message. Voir
+[la procédure et les limites](docs/ANDROID-BUILD.md). Aucun suivi d’autres
+applications n’est activé dans cet essai.
