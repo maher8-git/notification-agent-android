@@ -68,6 +68,10 @@ public final class SessionIntake {
     private void clearConsent() {
         localConsent = false;
         approved.clear();
+        resetLearnedState();
+    }
+
+    private void resetLearnedState() {
         boundary.setOptIn(false);
         dayparts.reset();
         lowPriority.clear();
@@ -81,6 +85,24 @@ public final class SessionIntake {
         if (approved.containsKey(key)) return approved.get(key) == category;
         if (approved.size() >= MAX_PAIRS || !boundary.allowApp(app)) return false;
         approved.put(key, category);
+        return true;
+    }
+
+    /**
+     * Withdraw this channel without collecting per-event provenance. The remaining channel
+     * approvals survive, but all session learning and pending suggestions are invalidated.
+     */
+    public synchronized boolean revokeChannel(String app, String channel) {
+        if (!connected || !localConsent || app == null || channel == null
+                || approved.remove(new Key(app, channel)) == null) return false;
+        resetLearnedState();
+        boundary.setOptIn(true);
+        for (Key survivor : approved.keySet()) {
+            if (!boundary.allowApp(survivor.app)) {
+                clearConsent(); // Remain fail-closed if admission and approval ever disagree.
+                break;
+            }
+        }
         return true;
     }
 

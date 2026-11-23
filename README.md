@@ -45,3 +45,5 @@ sh test-local.sh --demo
 La même application fictive peut être prioritaire le matin et à regrouper le soir après des choix explicites. Le programme affiche pourquoi, et montre que les alertes sensibles et le retrait du consentement empêchent la suggestion. Aucun accès Android.
 
 Les alertes synthétiques de faible priorité déjà autorisées peuvent alimenter un résumé local borné, par application, catégorie et tranche horaire. Seuls des compteurs sont stockés dans ce résumé, sans texte, et ils sont effacés quand la session se termine. Aucune notification n’est masquée ou envoyée.
+
+Un canal peut être retiré sans perdre les autres autorisations. Par prudence, retirer un canal remet à zéro les compteurs et préférences appris pendant la session fictive.

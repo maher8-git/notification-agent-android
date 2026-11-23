@@ -35,6 +35,7 @@ public final class SessionIntakeTest {
         check(x.post("three", "org.example.test", "dispatch", ALLOWED)==null);
         timedFeedback();
         summaryLifecycle();
+        revokeSingleChannel();
         System.out.println(checks + " vérifications de consentement et canal réussies.");
     }
 
@@ -128,5 +129,42 @@ public final class SessionIntakeTest {
         x.platformConnection(true);
         check(x.postAtLocalHour("after-disconnect", app, channel, ALLOWED, 20) == null);
         check(x.lowPrioritySnapshot().isEmpty());
+    }
+
+    private static void revokeSingleChannel() {
+        String app = "org.example.test", other = "org.example.other";
+        SessionIntake x = new SessionIntake();
+        check(!x.revokeChannel(app, "one"));
+        x.platformConnection(true);
+        check(x.enableThisSession());
+        check(x.approveChannel(app, "one", DELIVERY));
+        check(x.approveChannel(app, "sibling", DELIVERY));
+        check(x.approveChannel(other, "elsewhere", DELIVERY));
+        for (int i = 0; i < 3; i++) {
+            SessionIntake.TimedSuggestion training =
+                    x.postAtLocalHour("training-" + i, app, "one", ALLOWED, 20);
+            check(x.feedbackAtLocalHour(training, PriorityEngine.Feedback.LESS_IMPORTANT));
+        }
+        SessionIntake.TimedSuggestion old = x.postAtLocalHour("old", app, "sibling", ALLOWED, 20);
+        check(old.priority == PriorityEngine.Priority.LOW);
+        check(old.reason == SessionIntake.Reason.LOCAL_DAYPART);
+        int before = x.lowPrioritySnapshot().get(0).count;
+        check(!x.revokeChannel(app, "missing"));
+        check(!x.revokeChannel(null, "one"));
+        check(x.postAtLocalHour("denied", app, "one", OTP, 20) == null);
+        check(x.lowPrioritySnapshot().get(0).count == before);
+        check(x.revokeChannel(app, "one"));
+        check(x.lowPrioritySnapshot().isEmpty());
+        check(!x.feedbackAtLocalHour(old, IMPORTANT));
+        check(x.postAtLocalHour("old", app, "one", ALLOWED, 20) == null);
+        SessionIntake.TimedSuggestion sibling = x.postAtLocalHour("old", app, "sibling", ALLOWED, 20);
+        check(sibling.priority == PriorityEngine.Priority.NORMAL);
+        check(sibling.reason == SessionIntake.Reason.GENERAL);
+        check(x.postAtLocalHour("another", other, "elsewhere", ALLOWED, 20) != null);
+        check(!x.feedbackAtLocalHour(old, IMPORTANT));
+        check(x.feedbackAtLocalHour(sibling, IMPORTANT));
+        check(!x.revokeChannel(app, "one"));
+        check(x.approveChannel(app, "one", PriorityEngine.Category.REMINDER));
+        check(x.postAtLocalHour("fresh", app, "one", ALLOWED, 20) != null);
     }
 }
