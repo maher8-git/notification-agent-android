@@ -10,3 +10,5 @@ else
     java -m jdk.compiler/com.sun.tools.javac.Main -source 8 -target 8 -Xlint:-options -d "$classes" "$@"
 fi
 java -cp "$classes" notificationagent.PriorityEngineTest
+
+java -cp "$classes" notificationagent.IngestionBoundaryTest
